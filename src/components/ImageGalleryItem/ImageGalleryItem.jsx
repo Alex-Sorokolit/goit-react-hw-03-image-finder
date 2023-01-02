@@ -1,12 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
-const ImageGalleryItem = ({ hit }) => {
+import './ImageGalleryItem.css';
+const ImageGalleryItem = ({ hit, selectImg }) => {
   // console.log(hit);
-  const { webformatURL, tags } = hit;
+  const { webformatURL, tags, largeImageURL } = hit;
   return (
-    <li className="gallery-item">
-      <img src={webformatURL} alt={tags}></img>;
+    <li className="ImageGalleryItem">
+      <img
+        className="ImageGalleryItem-image"
+        src={webformatURL}
+        alt={tags}
+        onClick={() => selectImg(largeImageURL)}
+      ></img>
     </li>
   );
 };
