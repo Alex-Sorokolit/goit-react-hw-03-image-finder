@@ -20,20 +20,19 @@ export class App extends Component {
   };
 
   async componentDidUpdate(_, prevState) {
-    const { page } = this.state;
     const prevQuery = prevState.searchInput;
     const nextQuery = this.state.searchInput;
+    const { page } = this.state;
+
     // Обов'язково зробити перевірку, щоб не зациклити компонент
     if (prevQuery !== nextQuery || prevState.page !== page) {
       this.setState({ isLoading: true });
-
       try {
         const imagesData = await getImages(nextQuery, page);
-        console.log(imagesData);
-
+        const { hits, totalHits } = imagesData;
         this.setState(prevState => ({
-          hits: [...prevState.hits, ...imagesData.hits],
-          total: imagesData.totalHits,
+          hits: [...prevState.hits, ...hits],
+          total: totalHits,
         }));
       } catch (error) {
         this.setState({ error });
@@ -57,7 +56,7 @@ export class App extends Component {
     this.setState(prevState => ({
       page: prevState.page + 1,
     }));
-    console.log(this.state.page);
+    // console.log(this.state.page);
   };
 
   toggleModal = () => {

@@ -1,5 +1,5 @@
 const getImages = (nextQuery, page) => {
-  fetch(
+  return fetch(
     `https://pixabay.com/api/?q=${nextQuery}&page=${page}&key=30638456-f2e7f2d4200256b3df9ced703&image_type=photo&orientation=horizontal&per_page=12`
   ).then(response => {
     if (response.ok) {
