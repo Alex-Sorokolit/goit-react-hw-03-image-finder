@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
-import { Blocks } from 'react-loader-spinner';
 import './App.css';
 import Modal from './Modal/Modal';
+import Loader from './Loader/Loader';
 
 export class App extends Component {
   state = {
@@ -41,7 +41,7 @@ export class App extends Component {
           this.setState(prevState => ({
             hits: [...prevState.hits, ...imagesData.hits],
             isLoading: false,
-            total: imagesData.total,
+            total: imagesData.totalHits,
           }))
         )
         .catch(error => this.setState({ error }));
@@ -54,6 +54,7 @@ export class App extends Component {
     this.setState({
       searchInput: inputData,
       hits: [],
+      page: 1,
     });
   };
 
@@ -74,24 +75,18 @@ export class App extends Component {
   };
 
   render() {
-    const { hits, isLoading, showModal, selectedImage } = this.state;
+    const { hits, isLoading, showModal, selectedImage, total } = this.state;
     return (
       <div className="App">
         <Searchbar onSubmit={this.onSubmit} />
-        {isLoading && (
-          <Blocks
-            visible={true}
-            height="80"
-            width="80"
-            ariaLabel="blocks-loading"
-            wrapperStyle={{}}
-            wrapperClass="blocks-wrapper"
-          />
-        )}
+
         {hits.length > 0 && (
           <ImageGallery hits={hits} selectImg={this.setActiveImage} />
         )}
-        {hits.length > 0 && <Button loadMore={this.loadMore} />}
+        {isLoading && <Loader />}
+        {!isLoading && hits.length > 0 && total > hits.length && (
+          <Button loadMore={this.loadMore} />
+        )}
         {showModal && (
           <Modal onClose={this.toggleModal}>
             <img src={selectedImage} alt="" />
