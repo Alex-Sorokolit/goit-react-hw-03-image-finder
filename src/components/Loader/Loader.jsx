@@ -6,7 +6,6 @@ const Loader = () => {
       visible={true}
       height="80"
       width="80"
-      // ariaLabel="blocks-loading"
       wrapperClass="blocks-wrapper"
     />
   );

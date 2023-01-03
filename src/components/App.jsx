@@ -5,6 +5,7 @@ import Button from './Button/Button';
 import './App.css';
 import Modal from './Modal/Modal';
 import Loader from './Loader/Loader';
+import getImages from '../services/Api';
 
 export class App extends Component {
   state = {
@@ -18,7 +19,7 @@ export class App extends Component {
     total: 0,
   };
 
-  async componentDidUpdate(prevProps, prevState) {
+  async componentDidUpdate(_, prevState) {
     const { page } = this.state;
     const prevQuery = prevState.searchInput;
     const nextQuery = this.state.searchInput;
@@ -26,25 +27,19 @@ export class App extends Component {
     if (prevQuery !== nextQuery || prevState.page !== page) {
       this.setState({ isLoading: true });
 
-      await fetch(
-        `https://pixabay.com/api/?q=${nextQuery}&page=${page}&key=30638456-f2e7f2d4200256b3df9ced703&image_type=photo&orientation=horizontal&per_page=12`
-      )
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          }
-          return Promise.reject(
-            new Error(`Пошук за запитом ${nextQuery} не дав результатів`)
-          );
-        })
-        .then(imagesData =>
-          this.setState(prevState => ({
-            hits: [...prevState.hits, ...imagesData.hits],
-            isLoading: false,
-            total: imagesData.totalHits,
-          }))
-        )
-        .catch(error => this.setState({ error }));
+      try {
+        const imagesData = await getImages(nextQuery, page);
+        console.log(imagesData);
+
+        this.setState(prevState => ({
+          hits: [...prevState.hits, ...imagesData.hits],
+          total: imagesData.totalHits,
+        }));
+      } catch (error) {
+        this.setState({ error });
+      } finally {
+        this.setState({ isLoading: false });
+      }
     }
   }
 
