@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
@@ -26,16 +27,40 @@ export class App extends Component {
 
     // Обов'язково зробити перевірку, щоб не зациклити компонент
     if (prevQuery !== nextQuery || prevState.page !== page) {
-      this.setState({ isLoading: true });
+      this.setState({ isLoading: true, error: null });
       try {
+        // Запит на бекенд
         const imagesData = await getImages(nextQuery, page);
         const { hits, totalHits } = imagesData;
+
+        // Перевірка чи є результати пошуку
+        if (hits.length === 0) {
+          toast.error('За вашим запитом немає результатів');
+          return;
+        }
+
+        // Забираємо тільки ті дані які потрібні
+        const filteredData = imagesData.hits.map(
+          ({ id, tags, webformatURL, largeImageURL }) => ({
+            id,
+            tags,
+            webformatURL,
+            largeImageURL,
+          })
+        );
+
+        // Записуємо дані у стейт
         this.setState(prevState => ({
-          hits: [...prevState.hits, ...hits],
+          hits: [...prevState.hits, ...filteredData],
           total: totalHits,
         }));
+
+        // Показуємо кількість результатів при першому запиті
+        if (page === 1) {
+          toast.success(`Знайдено ${totalHits} результатів`);
+        }
       } catch (error) {
-        this.setState({ error });
+        this.setState({ error: 'Щось пішло не так, перезавантажте сторінку' });
       } finally {
         this.setState({ isLoading: false });
       }
@@ -44,7 +69,10 @@ export class App extends Component {
 
   onSubmit = inputData => {
     // console.log(inputData);
-
+    if (this.state.searchInput === inputData) {
+      toast.error(`Проявляйте креатив, пришіть різні запити`);
+      return;
+    }
     this.setState({
       searchInput: inputData,
       hits: [],
@@ -69,7 +97,8 @@ export class App extends Component {
   };
 
   render() {
-    const { hits, isLoading, showModal, selectedImage, total } = this.state;
+    const { hits, isLoading, showModal, selectedImage, total, error } =
+      this.state;
     return (
       <div className="App">
         <Searchbar onSubmit={this.onSubmit} />
@@ -78,14 +107,33 @@ export class App extends Component {
           <ImageGallery hits={hits} selectImg={this.setActiveImage} />
         )}
         {isLoading && <Loader />}
+
         {!isLoading && hits.length > 0 && total > hits.length && (
           <Button loadMore={this.loadMore} />
         )}
         {showModal && (
           <Modal onClose={this.toggleModal}>
-            <img src={selectedImage} alt="" />
+            {selectedImage && <img src={selectedImage} alt="" />}
+            {/* <img src={selectedImage} alt="" /> */}
           </Modal>
         )}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            success: {
+              style: {
+                background: 'rgba(255, 255, 255, 0.8)',
+              },
+            },
+            error: {
+              style: {
+                color: 'black',
+                background: 'rgba(255, 255, 255, 0.8)',
+              },
+            },
+          }}
+        />
+        {error && <h2>{error}</h2>}
       </div>
     );
   }
